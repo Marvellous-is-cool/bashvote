@@ -93,7 +93,7 @@ router.get("/paid/callback", async (req, res) => {
       // Call the handlePaymentQueries function to handle database queries
       await clientController.handlePaymentQueries(
         verifyResponse.data.amount,
-        "success",
+        "paid", // Changed from "success" to "paid" to match the check constraint
         selectedContestant
       );
 

@@ -96,16 +96,36 @@ async function handlePaymentQueries(amount, status, selectedContestant) {
   `;
 
   try {
+    // Validate payment status
+    if (!["pending", "paid", "failed"].includes(status)) {
+      throw new Error(
+        `Invalid payment status: ${status}. Must be one of: pending, paid, failed`
+      );
+    }
+
     // Get the award_id from the award_contestants table
-    const [awardRows] = await connection.execute(getAwardIdQuery, [selectedContestant.id]);
+    const [awardRows] = await connection.execute(getAwardIdQuery, [
+      selectedContestant.id,
+    ]);
     const awardId = awardRows.length > 0 ? awardRows[0].award_id : null;
 
     if (!awardId) {
-      console.warn("No award found for contestant:", selectedContestant.id);
+      throw new Error(
+        `No award found for contestant: ${selectedContestant.id}`
+      );
     }
 
     // Calculate amountDividedBy10 here before using it in the next execute call
     const amountDividedBy10 = amount / 10;
+
+    // Log payment details for debugging
+    console.log("Payment Details:", {
+      contestant_id: selectedContestant.id,
+      award_id: awardId,
+      amount: amount,
+      amount_divided_by_10: amountDividedBy10,
+      status: status,
+    });
 
     // Update payment status in the database
     await connection.execute(updatePaymentQuery, [
