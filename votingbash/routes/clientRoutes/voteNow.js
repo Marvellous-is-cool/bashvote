@@ -21,7 +21,8 @@ router.post("/:id/payment/get-url", async (req, res) => {
       amount: amount ? amount * 100 : 10000,
       reference: `vote__${selectedContestant.id}__${Date.now()}`,
       currency: "NGN",
-      callback: `https://bashvoting.onrender.com/paid/callback`,
+      callback: `https://bashvoting.onrender.com/paid/callback`, // production URL
+      // callback_url: `http://localhost:3000/paid/callback`, // local development URL
     }; // Log Paystack transaction details
 
     const paystackResponse = await paystack.transaction.initialize(
@@ -49,6 +50,7 @@ router.post("/:id/payment/get-url", async (req, res) => {
 
 // Callback endpoint to handle Paystack callback
 router.get("/paid/callback", async (req, res) => {
+  // This route will be accessible at /paid/callback
   try {
     const transactionReference = req.query.reference;
 
