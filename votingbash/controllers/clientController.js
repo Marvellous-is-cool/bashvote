@@ -83,18 +83,25 @@ async function getContestantById(contestantId) {
 async function handlePaymentQueries(amount, status, selectedContestant) {
   const updatePaymentQuery =
     "UPDATE payments SET status = ? WHERE contestant_id = ?";
+  const getAwardIdQuery = `
+    SELECT ac.award_id 
+    FROM award_contestants ac 
+    WHERE ac.contestant_id = ? 
+    LIMIT 1
+  `;
+
   const insertPaymentQuery = `
     INSERT INTO payments (contestant_id, award_id, amount_divided_by_10, payment_date, status)
     VALUES (?, ?, ?, ?, ?)
   `;
 
   try {
-    // Get the contestant details with award_id
-    const contestantDetails = await getContestantById(selectedContestant.id);
+    // Get the award_id from the award_contestants table
+    const [awardRows] = await connection.execute(getAwardIdQuery, [selectedContestant.id]);
+    const awardId = awardRows.length > 0 ? awardRows[0].award_id : null;
 
-    if (!contestantDetails) {
-      console.error("Contestant not found:", selectedContestant.id);
-      throw new Error("Contestant not found");
+    if (!awardId) {
+      console.warn("No award found for contestant:", selectedContestant.id);
     }
 
     // Calculate amountDividedBy10 here before using it in the next execute call
@@ -109,8 +116,8 @@ async function handlePaymentQueries(amount, status, selectedContestant) {
     // Insert payment details into the new payments table
     await connection.execute(insertPaymentQuery, [
       selectedContestant.id,
-      contestantDetails.award_id || null,
-      amountDividedBy10 || null,
+      awardId,
+      amountDividedBy10,
       new Date(),
       status,
     ]);
