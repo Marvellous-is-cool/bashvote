@@ -4,8 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Login - LINCSSA BASH</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+      rel="stylesheet"
+    />
     <style>
       :root {
         --primary-gold: #dcca87;
@@ -36,10 +42,15 @@
       }
 
       .login-container::before {
-        content: '';
+        content: "";
         position: absolute;
         inset: -10px;
-        background: linear-gradient(45deg, transparent, var(--primary-gold), transparent);
+        background: linear-gradient(
+          45deg,
+          transparent,
+          var(--primary-gold),
+          transparent
+        );
         animation: borderGlow 6s linear infinite;
         z-index: -1;
         filter: blur(20px);
@@ -92,7 +103,11 @@
       }
 
       .btn-login {
-        background: linear-gradient(45deg, var(--primary-gold), var(--accent-gold));
+        background: linear-gradient(
+          45deg,
+          var(--primary-gold),
+          var(--accent-gold)
+        );
         border: none;
         border-radius: 12px;
         color: var(--deep-space);
@@ -108,21 +123,31 @@
       }
 
       @keyframes borderGlow {
-        0%, 100% { opacity: 0.5; }
-        50% { opacity: 1; }
+        0%,
+        100% {
+          opacity: 0.5;
+        }
+        50% {
+          opacity: 1;
+        }
       }
     </style>
   </head>
   <body>
     <div class="login-container">
       <div class="login-header">
-        <i class='bx bxs-user-circle'></i>
+        <i class="bx bxs-user-circle"></i>
         <h2>Admin Login</h2>
       </div>
       <% if (error) { %>
       <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class='bx bxs-error'></i> Incorrect username or password
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <i class="bx bxs-error"></i> Incorrect username or password
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Close"
+        ></button>
       </div>
       <% } %>
       <form action="/authenticate" method="post">
@@ -135,7 +160,7 @@
             placeholder="Username"
             required
           />
-          <label for="username"><i class='bx bxs-user'></i> Username</label>
+          <label for="username"><i class="bx bxs-user"></i> Username</label>
         </div>
         <div class="form-floating mb-4">
           <input
@@ -146,10 +171,10 @@
             placeholder="Password"
             required
           />
-          <label for="password"><i class='bx bxs-lock-alt'></i> Password</label>
+          <label for="password"><i class="bx bxs-lock-alt"></i> Password</label>
         </div>
         <button type="submit" class="btn btn-login">
-          <i class='bx bxs-log-in-circle'></i> Log In
+          <i class="bx bxs-log-in-circle"></i> Log In
         </button>
       </form>
     </div>

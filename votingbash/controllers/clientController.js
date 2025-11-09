@@ -80,11 +80,7 @@ async function getContestantById(contestantId) {
 }
 
 // Function to handle database queries related to payments
-async function handlePaymentQueries(
-  amount,
-  status,
-  selectedContestant
-) {
+async function handlePaymentQueries(amount, status, selectedContestant) {
   const updatePaymentQuery =
     "UPDATE payments SET status = ? WHERE contestant_id = ?";
   const insertPaymentQuery = `
@@ -105,7 +101,10 @@ async function handlePaymentQueries(
     const amountDividedBy10 = amount / 10;
 
     // Update payment status in the database
-    await connection.execute(updatePaymentQuery, [status, selectedContestant.id]);
+    await connection.execute(updatePaymentQuery, [
+      status,
+      selectedContestant.id,
+    ]);
 
     // Insert payment details into the new payments table
     await connection.execute(insertPaymentQuery, [

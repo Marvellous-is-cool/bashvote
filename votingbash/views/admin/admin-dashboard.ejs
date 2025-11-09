@@ -303,10 +303,13 @@
                     <%= contestant.nickname %>
                     <div class="contestant-badges">
                       <% if (contestant.level) { %>
-                      <span class="badge bg-success">Level <%= contestant.level %></span>
-                      <% } %>
-                      <% if (contestant.votes > 0) { %>
-                      <span class="badge bg-primary"><%= contestant.votes %> votes</span>
+                      <span class="badge bg-success"
+                        >Level <%= contestant.level %></span
+                      >
+                      <% } %> <% if (contestant.votes > 0) { %>
+                      <span class="badge bg-primary"
+                        ><%= contestant.votes %> votes</span
+                      >
                       <% } %>
                     </div>
                   </h3>

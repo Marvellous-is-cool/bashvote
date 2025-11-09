@@ -64,21 +64,21 @@
         <div class="col-md-6 offset-md-3" data-aos="fade-up">
           <h4>Select Award Title</h4>
           <div class="form-group">
-              <%- include('header') %>
-              <label for="awardTitle">Award Title:</label>
-              <select
-                class="form-control"
-                id="awardTitle"
-                name="awardTitle"
-                required
-                onchange="showContestantForm(this.value)"
-              >
-                <option value="">Select an award...</option>
-                <% awards.forEach(award => { %>
-                <option value="<%= award.id %>"><%= award.title %></option>
-                <% }); %>
-              </select>
-            </div>
+            <%- include('header') %>
+            <label for="awardTitle">Award Title:</label>
+            <select
+              class="form-control"
+              id="awardTitle"
+              name="awardTitle"
+              required
+              onchange="showContestantForm(this.value)"
+            >
+              <option value="">Select an award...</option>
+              <% awards.forEach(award => { %>
+              <option value="<%= award.id %>"><%= award.title %></option>
+              <% }); %>
+            </select>
+          </div>
         </div>
 
         <!-- Add Contestant Form (Initially Hidden) -->
