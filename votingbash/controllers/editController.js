@@ -48,7 +48,7 @@ const updateContestant = async (
 
     const updateQuery = `
       UPDATE contestants
-      SET nickname = ?, department = ?, photo_url = ?, votes = ?
+      SET nickname = ?, department = ?, photo_url = ?, votes = ?, level = ?
       WHERE id = ?
     `;
     const values = [
@@ -56,6 +56,7 @@ const updateContestant = async (
       editedDetails.department,
       photoUrl,
       editedDetails.votes,
+      editedDetails.level,
       contestantId,
     ];
 

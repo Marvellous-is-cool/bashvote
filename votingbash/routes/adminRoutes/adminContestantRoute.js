@@ -70,6 +70,10 @@ router.post(
   editController.editContestant
 );
 
+// Award title management routes
+router.get("/add-title", adminController.renderAddTitlePage);
+router.post("/add-title", adminController.addTitle);
+
 // Admin dashboard overview route
 router.get("/dashboard/overview", async (req, res) => {
   try {

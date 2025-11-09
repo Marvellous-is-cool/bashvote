@@ -3,176 +3,381 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Dashboard</title>
+    <title>Admin Dashboard v3</title>
     <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
-      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
     />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/boxicons@2.0.7/css/boxicons.min.css"
+    />
     <style>
+      :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --danger-color: #f72585;
+        --success-color: #4cc9f0;
+        --warning-color: #4895ef;
+        --info-color: #4361ee;
+        --dark-color: #1a1b1e;
+        --light-color: #ffffff;
+        --gray-100: #f8f9fa;
+        --gray-200: #e9ecef;
+        --gray-300: #dee2e6;
+        --gray-800: #343a40;
+      }
+
       body {
-        background-color: #f4f7fa;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--gray-100);
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        color: var(--gray-800);
+        min-height: 100vh;
       }
-      .container {
-        margin-top: 40px;
+
+      .dashboard-header {
+        background: var(--light-color);
+        padding: 1.5rem 0;
+        box-shadow: 0 0 35px 0 rgba(49, 57, 66, 0.05);
+        margin-bottom: 2rem;
       }
-      h4 {
-        color: #495057;
-        text-align: center;
-        margin-bottom: 30px;
-        font-size: 1.8rem;
+
+      .dashboard-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin-bottom: 0;
+        padding: 0.5rem 0;
       }
+
+      .action-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 1rem 0;
+      }
+
       .btn {
-        margin-right: 5px;
-        margin-bottom: 5px;
-        border-radius: 50px;
-        font-size: 0.9rem;
-        padding: 10px 20px;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
       }
-      .btn-primary {
-        background-color: #007bff;
-        border-color: #007bff;
-      }
-      .btn-primary:hover {
-        background-color: #0056b3;
-        border-color: #004085;
-      }
-      .btn-danger {
-        background-color: #dc3545;
-        border-color: #dc3545;
-      }
-      .btn-danger:hover {
-        background-color: #c82333;
-        border-color: #bd2130;
-      }
-      .card-header {
-        cursor: pointer;
-        background-color: #1402247c;
-        color: white;
-        font-weight: bold;
-        text-transform: uppercase;
-      }
-      .card {
-        margin-bottom: 20px;
-        border: none;
-        border-radius: 20px;
-      }
-      .card img {
-        max-height: 200px;
-        object-fit: cover;
-        border-radius: 10px 10px 0 0;
-      }
-      .card-body {
-        background-color: #ffffff;
-        border-radius: 0 0 10px 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-      }
-      .card-title {
+
+      .btn i {
         font-size: 1.2rem;
-        color: #343a40;
       }
-      .card-text {
-        font-size: 1rem;
-        color: #6c757d;
+
+      .btn-primary {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
       }
-      .list-group-item {
-        background-color: transparent;
-        border: none;
-        padding-left: 0;
-        padding-right: 0;
+
+      .btn-primary:hover {
+        background: var(--secondary-color);
+        border-color: var(--secondary-color);
+        transform: translateY(-2px);
       }
-      .p-2 {
+
+      .btn-danger {
+        background: var(--danger-color);
+        border-color: var(--danger-color);
+      }
+
+      .btn-danger:hover {
+        background: #d90429;
+        border-color: #d90429;
+        transform: translateY(-2px);
+      }
+
+      .award-section {
+        background: var(--light-color);
+        border-radius: 16px;
+        box-shadow: 0 0 35px 0 rgba(49, 57, 66, 0.05);
+        margin-bottom: 2rem;
+        overflow: hidden;
+      }
+
+      .award-header {
+        background: var(--primary-color);
+        color: var(--light-color);
+        padding: 1.25rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .award-header:hover {
+        background: var(--secondary-color);
+      }
+
+      .contestant-card {
+        background: var(--light-color);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        margin: 1rem;
+        border: 1px solid var(--gray-200);
+      }
+
+      .contestant-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .contestant-image {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+      }
+
+      .contestant-info {
+        padding: 1.5rem;
+      }
+
+      .contestant-name {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--dark-color);
+      }
+
+      .contestant-badges {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 0.5rem;
+      }
+
+      .badge {
+        padding: 0.4rem 0.8rem;
+        font-weight: 500;
+        font-size: 0.85rem;
+        border-radius: 8px;
+      }
+
+      .contestant-department {
+        color: var(--gray-800);
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+      }
+
+      .contestant-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+
+      .no-contestants {
+        padding: 2rem;
         text-align: center;
+        color: var(--gray-800);
+        font-style: italic;
+      }
+
+      /* Loading animation */
+      .loading {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .loading::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.4),
+          transparent
+        );
+        animation: loading 1.5s infinite;
+      }
+
+      @keyframes loading {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(100%);
+        }
+      }
+
+      /* Grid system for contestants */
+      .contestants-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        padding: 1.5rem;
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
+        .action-buttons {
+          flex-direction: column;
+        }
+        .btn {
+          width: 100%;
+          justify-content: center;
+        }
+        .contestant-card {
+          margin: 1rem 0;
+        }
       }
     </style>
   </head>
 
   <body>
+    <header class="dashboard-header">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col">
+            <h1 class="dashboard-title">Admin Dashboard v3</h1>
+          </div>
+        </div>
+      </div>
+    </header>
+
     <div class="container">
-      <h4>Award Titles</h4>
-      <div class="p-2">
-        <a href="/logout" class="btn btn-danger">Logout</a>
-        <a href="/admin/dashboard/overview" class="btn btn-primary">Overview</a>
-        <a href="/admin/add-contestant" class="btn btn-primary"
-          >Add Contestant</a
-        >
+      <div class="action-buttons">
+        <a href="/admin/dashboard/overview" class="btn btn-primary">
+          <i class="bx bxs-dashboard"></i> Overview
+        </a>
+        <a href="/admin/add-contestant" class="btn btn-primary">
+          <i class="bx bxs-user-plus"></i> Add Contestant
+        </a>
+        <a href="/admin/add-title" class="btn btn-primary">
+          <i class="bx bxs-trophy"></i> Add Award Title
+        </a>
+        <a href="/logout" class="btn btn-danger">
+          <i class="bx bx-log-out"></i> Logout
+        </a>
       </div>
       <%- include('header') %> <% if (attachBeforeUnload) { %>
-      <ul class="list-group">
+      <div class="awards-container">
         <% awards.forEach(award => { %>
-        <li class="list-group-item" data-aos="fade-up">
+        <div class="award-section" data-aos="fade-up">
           <div
-            class="card-header"
-            data-toggle="collapse"
-            data-target="#award<%= award.id %>Collapse"
+            class="award-header"
+            data-bs-toggle="collapse"
+            data-bs-target="#award<%= award.id %>Collapse"
             aria-expanded="true"
             aria-controls="award<%= award.id %>Collapse"
           >
-            <%= award.title %>
+            <span><i class="bx bxs-trophy"></i> <%= award.title %></span>
+            <i class="bx bx-chevron-down"></i>
           </div>
-          <!-- Display Contestants for the Award -->
-          <div id="award<%= award.id %>Collapse" class="collapse">
-            <ul class="list-group mt-2">
-              <% if (award.contestants && award.contestants.length > 0) { %> <%
-              award.contestants.forEach(contestant => { %>
-              <li class="list-group-item" data-aos="fade-up">
-                <div class="card">
-                  <img
-                    src="/uploads/<%= contestant.photo_url %>"
-                    class="card-img-top"
-                    alt="<%= contestant.nickname %>"
-                  />
-                  <div class="card-body">
-                    <h5 class="card-title"><%= contestant.nickname %></h5>
-                    <p class="card-text"><%= contestant.department %></p>
-                    <form
-                      action="/admin/delete-contestant/<%= award.id %>/<%= contestant.id %>"
-                      method="post"
-                      onsubmit="return confirm('Are you sure you want to delete this contestant?');"
-                    >
-                      <button type="submit" class="btn btn-danger">
-                        Delete
-                      </button>
-                    </form>
+
+          <div id="award<%= award.id %>Collapse" class="collapse show">
+            <% if (award.contestants && award.contestants.length > 0) { %>
+            <div class="contestants-grid">
+              <% award.contestants.forEach(contestant => { %>
+              <div class="contestant-card" data-aos="fade-up">
+                <img
+                  src="/uploads/<%= contestant.photo_url %>"
+                  class="contestant-image"
+                  alt="<%= contestant.nickname %>"
+                  loading="lazy"
+                />
+                <div class="contestant-info">
+                  <h3 class="contestant-name">
+                    <%= contestant.nickname %>
+                    <div class="contestant-badges">
+                      <% if (contestant.level) { %>
+                      <span class="badge bg-success">Level <%= contestant.level %></span>
+                      <% } %>
+                      <% if (contestant.votes > 0) { %>
+                      <span class="badge bg-primary"><%= contestant.votes %> votes</span>
+                      <% } %>
+                    </div>
+                  </h3>
+                  <% if (contestant.department) { %>
+                  <p class="contestant-department">
+                    <i class="bx bxs-graduation"></i> <%= contestant.department
+                    %>
+                  </p>
+                  <% } %>
+                  <div class="contestant-actions">
                     <a
                       href="/admin/edit-contestant/<%= award.id %>/<%= contestant.id %>"
                       class="btn btn-primary"
                     >
-                      Edit
+                      <i class="bx bxs-edit"></i> Edit
                     </a>
+                    <form
+                      action="/admin/delete-contestant/<%= award.id %>/<%= contestant.id %>"
+                      method="post"
+                      class="d-inline"
+                      onsubmit="return confirm('Are you sure you want to delete this contestant?');"
+                    >
+                      <button type="submit" class="btn btn-danger">
+                        <i class="bx bxs-trash"></i> Delete
+                      </button>
+                    </form>
                   </div>
                 </div>
-              </li>
-              <% }); %> <% } else { %>
-              <li class="list-group-item" data-aos="fade-up">
-                No contestants for this award.
-              </li>
-              <% } %>
-            </ul>
+              </div>
+              <% }); %>
+            </div>
+            <% } else { %>
+            <div class="no-contestants">
+              <i class="bx bx-user-x" style="font-size: 3rem"></i>
+              <p>No contestants registered for this award yet.</p>
+            </div>
+            <% } %>
           </div>
-        </li>
+        </div>
         <% }); %>
-      </ul>
+      </div>
     </div>
+
     <script>
-      // Attach an event listener for beforeunload to trigger session destruction
+      // Session destruction on page unload
       window.addEventListener("beforeunload", async () => {
         await fetch("/admin/destroy-session", { method: "POST" });
       });
     </script>
     <% } %>
-    <!-- Bootstrap JS, jQuery, and AOS -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+    <!-- Bootstrap 5 and other scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
     <script>
-      AOS.init();
+      // Initialize animations
+      AOS.init({
+        duration: 800,
+        once: true,
+      });
+
+      // Add loading animation to images
+      document.addEventListener("DOMContentLoaded", () => {
+        const images = document.querySelectorAll(".contestant-image");
+        images.forEach((img) => {
+          img.classList.add("loading");
+          img.onload = () => {
+            img.classList.remove("loading");
+          };
+        });
+      });
     </script>
   </body>
 </html>

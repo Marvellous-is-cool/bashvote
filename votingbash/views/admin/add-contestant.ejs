@@ -44,6 +44,15 @@
         border-radius: 10px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         padding: 20px;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+      }
+      select.form-control {
+        cursor: pointer;
+      }
+      .alert {
+        margin-top: 1rem;
+        display: none;
       }
     </style>
   </head>
@@ -54,8 +63,7 @@
         <!-- Award Titles Dropdown -->
         <div class="col-md-6 offset-md-3" data-aos="fade-up">
           <h4>Select Award Title</h4>
-          <form action="/admin/dashboard" method="post">
-            <div class="form-group">
+          <div class="form-group">
               <%- include('header') %>
               <label for="awardTitle">Award Title:</label>
               <select
@@ -63,15 +71,14 @@
                 id="awardTitle"
                 name="awardTitle"
                 required
+                onchange="showContestantForm(this.value)"
               >
-                <!-- Populate the select options dynamically from your database -->
+                <option value="">Select an award...</option>
                 <% awards.forEach(award => { %>
                 <option value="<%= award.id %>"><%= award.title %></option>
                 <% }); %>
               </select>
             </div>
-            <button type="submit" class="btn btn-primary">Select Award</button>
-          </form>
         </div>
 
         <!-- Add Contestant Form (Initially Hidden) -->
@@ -140,19 +147,23 @@
     <script>
       AOS.init();
 
-      // Script to toggle display of the add contestant form based on selected award
-      document
-        .getElementById("awardTitle")
-        .addEventListener("change", function () {
-          // Get the selected award ID
-          var selectedAwardId = this.value;
-
-          // Set the selected award ID in the hidden field
-          document.getElementById("selectedAwardId").value = selectedAwardId;
-
-          // Show the add contestant form
-          document.getElementById("addContestantForm").style.display = "block";
-        });
+      // Function to show contestant form and set the selected award
+      function showContestantForm(awardId) {
+        if (!awardId) {
+          document.getElementById("addContestantForm").style.display = "none";
+          return;
+        }
+        // Set the selected award ID in the hidden field
+        document.getElementById("selectedAwardId").value = awardId;
+        // Show the add contestant form with a smooth transition
+        const formDiv = document.getElementById("addContestantForm");
+        formDiv.style.display = "block";
+        formDiv.style.opacity = "0";
+        setTimeout(() => {
+          formDiv.style.opacity = "1";
+          formDiv.style.transition = "opacity 0.3s ease-in-out";
+        }, 10);
+      }
     </script>
   </body>
 </html>

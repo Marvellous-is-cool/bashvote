@@ -126,6 +126,52 @@ h1::before {
   padding: 1rem;
 }
 
+/* Contestant Image Container */
+.contestant-image-container {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 1rem 0;
+  transform-style: preserve-3d;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.contestant-image-container:hover {
+  transform: scale(1.02) translateY(-5px);
+  box-shadow: 
+    0 10px 30px rgba(220, 202, 135, 0.2),
+    0 0 60px rgba(0, 243, 255, 0.1);
+}
+
+.contestant-image {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 20px;
+  border: 2px solid rgba(220, 202, 135, 0.3);
+  transition: all 0.5s ease;
+}
+
+.contestant-image-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 8, 16, 0.9),
+    rgba(0, 8, 16, 0.5),
+    transparent
+  );
+  padding: 2rem 1rem 1rem;
+  transform: translateY(100%);
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.contestant-image-container:hover .contestant-image-overlay {
+  transform: translateY(0);
+}
+
 /* Enhanced Submit Button */
 .btn-primary {
   background: transparent;
@@ -136,6 +182,7 @@ h1::before {
   overflow: hidden;
   transition: all 0.3s ease;
   transform-style: preserve-3d;
+  border-radius: 15px;
 }
 
 .btn-primary::before {

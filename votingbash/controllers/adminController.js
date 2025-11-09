@@ -180,16 +180,15 @@ const adminController = {
         SELECT 
           p.id, 
           p.status, 
-          p.contestant_nickname, 
-          COALESCE(a.title, awards.title) as award_title,
+          c.nickname as contestant_name,
+          a.title as award_title,
           p.amount_divided_by_10, 
-          p.payment_date
+          p.payment_date,
+          c.department,
+          c.votes
         FROM payments p
-        LEFT JOIN awards a ON p.award_id = a.id
-        LEFT JOIN award_contestants ac ON p.contestant_nickname = ac.contestant_id
-        LEFT JOIN awards ON ac.award_id = awards.id
-        WHERE a.id IS NOT NULL OR awards.id IS NOT NULL
-          OR (a.id IS NULL AND awards.id IS NULL AND p.contestant_nickname IS NOT NULL)
+        JOIN contestants c ON p.contestant_id = c.id
+        JOIN awards a ON p.award_id = a.id
       `);
 
       return payments;
@@ -199,6 +198,46 @@ const adminController = {
         error
       );
       throw new Error("ADMINCONTROLLER - Internal Server Error");
+    }
+  },
+
+  // Add Award Title operation
+  addTitle: async (req, res) => {
+    const { title } = req.body;
+
+    try {
+      // Check if title is provided
+      if (!title) {
+        req.flash("error", "Award title is required.");
+        return res.redirect("/admin/add-title");
+      }
+
+      // Insert the new award title
+      const sql = "INSERT INTO awards (title) VALUES (?)";
+      await connection.query(sql, [title]);
+
+      req.flash("success", "Award title added successfully.");
+      res.redirect("/admin/dashboard");
+    } catch (error) {
+      console.error("ADMINCONTROLLER - Error adding award title:", error);
+
+      if (error.code === "ER_DUP_ENTRY") {
+        req.flash("error", "An award with this title already exists.");
+        res.redirect("/admin/add-title");
+      } else {
+        req.flash("error", "Failed to add award title. Please try again.");
+        res.redirect("/admin/add-title");
+      }
+    }
+  },
+
+  // Render Add Title Page
+  renderAddTitlePage: async (req, res) => {
+    try {
+      res.render("admin/add-title");
+    } catch (error) {
+      console.error("ADMINCONTROLLER - Error rendering add title page:", error);
+      res.redirect("/admin/dashboard");
     }
   },
 };
