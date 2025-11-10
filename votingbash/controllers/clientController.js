@@ -147,6 +147,17 @@ async function handlePaymentQueries(amount, status, selectedContestant) {
   }
 }
 
+async function getAllContestantsWithVotes() {
+  const sql = "SELECT * FROM contestants ORDER BY votes DESC";
+  try {
+    const [contestants] = await connection.execute(sql);
+    return contestants;
+  } catch (error) {
+    console.error("Error fetching all contestants:", error);
+    throw error;
+  }
+}
+
 module.exports = {
   getAwards,
   getSelectedAward,
@@ -154,4 +165,5 @@ module.exports = {
   incrementVotesForContestant,
   getContestantById,
   handlePaymentQueries,
+  getAllContestantsWithVotes,
 };

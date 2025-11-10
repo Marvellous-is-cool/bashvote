@@ -5,6 +5,7 @@ const adminController = require("../../controllers/adminController");
 const voteNowRouter = require("./voteNow.js");
 const authMiddleware = require("../../middlewares/authMiddleware");
 const adminContestantRouter = require("../adminRoutes/adminContestantRoute"); // Import the adminContestantRoute
+const configModel = require("../../models/config");
 
 // // // Index route
 router.get("/", async (req, res) => {
@@ -169,6 +170,27 @@ router.post("/destroy-session", (req, res) => {
       res.sendStatus(200);
     }
   });
+});
+
+// Live votes page
+router.get("/live", async (req, res) => {
+  try {
+    const liveEnabled =
+      (await configModel.getConfig("live_enabled")) === "true";
+    if (!liveEnabled) {
+      return res
+        .status(403)
+        .render("suspended", {
+          message: "Live votes are currently disabled by the admin.",
+        });
+    }
+    // Fetch all contestants and their votes
+    const contestants = await clientController.getAllContestantsWithVotes();
+    res.render("live", { contestants });
+  } catch (err) {
+    console.error("Error rendering live votes:", err);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
 // router.get("/live/votes", async (req, res) => {

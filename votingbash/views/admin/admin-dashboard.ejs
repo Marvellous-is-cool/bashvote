@@ -271,6 +271,19 @@
         <a href="/logout" class="btn btn-danger">
           <i class="bx bx-log-out"></i> Logout
         </a>
+        <form
+          action="/admin/toggle-live"
+          method="post"
+          style="display: inline-block; margin-left: 1rem"
+        >
+          <button
+            type="submit"
+            class="btn <%= liveEnabled ? 'btn-success' : 'btn-secondary' %>"
+          >
+            <i class="bx bx-pulse"></i> Live Votes: <%= liveEnabled ? 'ON' :
+            'OFF' %>
+          </button>
+        </form>
       </div>
       <%- include('header') %> <% if (attachBeforeUnload) { %>
       <div class="awards-container">

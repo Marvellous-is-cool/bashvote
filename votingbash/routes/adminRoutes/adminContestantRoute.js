@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const adminController = require("../../controllers/adminController");
 const editController = require("../../controllers/editController");
+const configModel = require("../../models/config");
 
 // Admin show awards route
 router.get("/add-contestant", async (req, res) => {
@@ -26,14 +27,33 @@ router.post("/add-contestant", async (req, res) => {
   }
 });
 
+// Toggle live votes route
+router.post("/toggle-live", async (req, res) => {
+  try {
+    const current = await configModel.getConfig("live_enabled");
+    const newValue = current === "true" ? "false" : "true";
+    await configModel.setConfig("live_enabled", newValue);
+    res.redirect("/admin/dashboard");
+  } catch (err) {
+    console.error("Error toggling live votes:", err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 // Admin dashboard route
 router.get("/dashboard", async (req, res) => {
   try {
     // Fetch admin dashboard data using the admin controller
     const awards = await adminController.getDashboardData();
-
+    // Get live votes status
+    const liveEnabled =
+      (await configModel.getConfig("live_enabled")) === "true";
     // Attach an event listener for beforeunload to trigger session destruction
-    res.render("admin/admin-dashboard", { awards, attachBeforeUnload: true });
+    res.render("admin/admin-dashboard", {
+      awards,
+      attachBeforeUnload: true,
+      liveEnabled,
+    });
   } catch (error) {
     console.error("Error fetching admin dashboard data:", error);
     res.status(500).send("Internal Server Error");

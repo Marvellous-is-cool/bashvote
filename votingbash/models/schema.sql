@@ -84,8 +84,13 @@ CREATE INDEX idx_payments_date ON payments(payment_date);
 -- Insert a default admin (change the password!)
 INSERT INTO admins (username, password) VALUES ('admin', 'changeme123');
 
--- Optional: Insert some sample awards
 INSERT INTO awards (title) VALUES 
 ('Best Performance'),
 ('Most Popular'),
 ('Rising Star');
+
+-- Config table for storing key-value pairs (e.g., live votes status)
+CREATE TABLE IF NOT EXISTS config (
+    `key` VARCHAR(100) PRIMARY KEY,
+    `value` VARCHAR(255) NOT NULL
+) ENGINE=InnoDB;
