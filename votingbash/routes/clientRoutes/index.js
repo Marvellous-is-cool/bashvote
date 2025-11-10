@@ -184,9 +184,9 @@ router.get("/live", async (req, res) => {
           message: "Live votes are currently disabled by the admin.",
         });
     }
-    // Fetch all contestants and their votes
-    const contestants = await clientController.getAllContestantsWithVotes();
-    res.render("live", { contestants });
+    // Fetch all awards and their contestants
+    const awardsWithContestants = await clientController.getAwardsWithContestants();
+    res.render("live", { awardsWithContestants });
   } catch (err) {
     console.error("Error rendering live votes:", err);
     res.status(500).send("Internal Server Error");

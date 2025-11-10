@@ -158,6 +158,26 @@ async function getAllContestantsWithVotes() {
   }
 }
 
+async function getAwardsWithContestants() {
+  const sql = "SELECT * FROM awards ORDER BY title ASC";
+  try {
+    const [awards] = await connection.execute(sql);
+    // For each award, get its contestants
+    const awardsWithContestants = await Promise.all(
+      awards.map(async (award) => {
+        const contestants = await awardContestantController.getContestantsForAward(
+          award.id
+        );
+        return { ...award, contestants };
+      })
+    );
+    return awardsWithContestants;
+  } catch (error) {
+    console.error("Error fetching awards with contestants:", error);
+    throw error;
+  }
+}
+
 module.exports = {
   getAwards,
   getSelectedAward,
@@ -166,4 +186,5 @@ module.exports = {
   getContestantById,
   handlePaymentQueries,
   getAllContestantsWithVotes,
+  getAwardsWithContestants,
 };
