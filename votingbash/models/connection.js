@@ -1,4 +1,5 @@
 const fs = require("fs");
+const path = require("path");
 const mysql = require("mysql2/promise");
 
 // Create the connection pool to the database
