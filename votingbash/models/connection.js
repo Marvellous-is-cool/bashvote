@@ -1,3 +1,4 @@
+const fs = require("fs");
 const mysql = require("mysql2/promise");
 
 // Create the connection pool to the database
@@ -12,7 +13,7 @@ const pool = mysql.createPool({
   queueLimit: 0,
   connectTimeout: 30000, // 30 seconds timeout
   ssl: {
-    rejectUnauthorized: false, // REQUIRED for Aiven
+    ca: fs.readFileSync("./ca.pem"), // the certificate you just saved
   },
 });
 
