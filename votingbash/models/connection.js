@@ -13,7 +13,7 @@ const pool = mysql.createPool({
   queueLimit: 0,
   connectTimeout: 30000, // 30 seconds timeout
   ssl: {
-    ca: fs.readFileSync("./ca.pem"), // the certificate you just saved
+    ca: fs.readFileSync(path.join(__dirname, "ca.pem")), // the certificate
   },
 });
 
