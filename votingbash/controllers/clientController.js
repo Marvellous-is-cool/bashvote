@@ -165,9 +165,8 @@ async function getAwardsWithContestants() {
     // For each award, get its contestants
     const awardsWithContestants = await Promise.all(
       awards.map(async (award) => {
-        const contestants = await awardContestantController.getContestantsForAward(
-          award.id
-        );
+        const contestants =
+          await awardContestantController.getContestantsForAward(award.id);
         return { ...award, contestants };
       })
     );

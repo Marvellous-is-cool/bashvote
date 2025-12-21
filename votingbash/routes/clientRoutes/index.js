@@ -178,14 +178,13 @@ router.get("/live", async (req, res) => {
     const liveEnabled =
       (await configModel.getConfig("live_enabled")) === "true";
     if (!liveEnabled) {
-      return res
-        .status(403)
-        .render("suspended", {
-          message: "Live votes are currently disabled by the admin.",
-        });
+      return res.status(403).render("suspended", {
+        message: "Live votes are currently disabled by the admin.",
+      });
     }
     // Fetch all awards and their contestants
-    const awardsWithContestants = await clientController.getAwardsWithContestants();
+    const awardsWithContestants =
+      await clientController.getAwardsWithContestants();
     res.render("live", { awardsWithContestants });
   } catch (err) {
     console.error("Error rendering live votes:", err);

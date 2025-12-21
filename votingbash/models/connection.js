@@ -11,6 +11,9 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
   connectTimeout: 30000, // 30 seconds timeout
+  ssl: {
+    rejectUnauthorized: false, // REQUIRED for Aiven
+  },
 });
 
 pool.on("error", (err) => {
