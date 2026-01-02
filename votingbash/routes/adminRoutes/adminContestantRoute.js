@@ -3,46 +3,42 @@ const router = express.Router();
 const adminController = require("../../controllers/adminController");
 const editController = require("../../controllers/editController");
 const configModel = require("../../models/config");
+const asyncHandler = require("../../middlewares/asyncHandler");
 
 // Admin show awards route
-router.get("/add-contestant", async (req, res) => {
-  try {
+router.get(
+  "/add-contestant",
+  asyncHandler(async (req, res) => {
     // Fetch award titles from the database using the updated method
     const awards = await adminController.getAwardTitles();
 
     res.render("admin/add-contestant", { awards });
-  } catch (error) {
-    console.error("Error fetching award titles:", error);
-    res.status(500).send("Internal Server Error");
-  }
-});
+  })
+);
 
-router.post("/add-contestant", async (req, res) => {
-  try {
+router.post(
+  "/add-contestant",
+  asyncHandler(async (req, res) => {
     // Call the updated addContestant method in adminController
     await adminController.addContestant(req, res);
-  } catch (error) {
-    console.error("Error adding contestant:", error);
-    res.status(500).send("Internal Server Error");
-  }
-});
+  })
+);
 
 // Toggle live votes route
-router.post("/toggle-live", async (req, res) => {
-  try {
+router.post(
+  "/toggle-live",
+  asyncHandler(async (req, res) => {
     const current = await configModel.getConfig("live_enabled");
     const newValue = current === "true" ? "false" : "true";
     await configModel.setConfig("live_enabled", newValue);
     res.redirect("/admin/dashboard");
-  } catch (err) {
-    console.error("Error toggling live votes:", err);
-    res.status(500).send("Internal Server Error");
-  }
-});
+  })
+);
 
 // Admin dashboard route
-router.get("/dashboard", async (req, res) => {
-  try {
+router.get(
+  "/dashboard",
+  asyncHandler(async (req, res) => {
     // Fetch admin dashboard data using the admin controller
     const awards = await adminController.getDashboardData();
     // Get live votes status
@@ -54,18 +50,16 @@ router.get("/dashboard", async (req, res) => {
       attachBeforeUnload: true,
       liveEnabled,
     });
-  } catch (error) {
-    console.error("Error fetching admin dashboard data:", error);
-    res.status(500).send("Internal Server Error");
-  }
-});
+  })
+);
 
 // Admin delete contestant route
-router.post("/delete-contestant/:awardId/:contestantId", async (req, res) => {
-  const awardId = req.params.awardId;
-  const contestantId = req.params.contestantId;
+router.post(
+  "/delete-contestant/:awardId/:contestantId",
+  asyncHandler(async (req, res) => {
+    const awardId = req.params.awardId;
+    const contestantId = req.params.contestantId;
 
-  try {
     const result = await adminController.deleteContestant(
       awardId,
       contestantId
@@ -73,12 +67,8 @@ router.post("/delete-contestant/:awardId/:contestantId", async (req, res) => {
 
     req.flash("success", result.message);
     res.redirect("/admin/dashboard");
-  } catch (error) {
-    console.error("Error deleting contestant:", error);
-    req.flash("error", "Error deleting contestant. Please try again.");
-    res.redirect("/admin/dashboard");
-  }
-});
+  })
+);
 
 // admin edit routes
 router.get(
@@ -95,8 +85,9 @@ router.get("/add-title", adminController.renderAddTitlePage);
 router.post("/add-title", adminController.addTitle);
 
 // Admin dashboard overview route
-router.get("/dashboard/overview", async (req, res) => {
-  try {
+router.get(
+  "/dashboard/overview",
+  asyncHandler(async (req, res) => {
     // Fetch admin dashboard data using the admin controller
     const awards = await adminController.getDashboardData();
 
@@ -105,11 +96,8 @@ router.get("/dashboard/overview", async (req, res) => {
 
     // Render the admin overview page with awards and payments data
     res.render("admin/admin-overview", { awards, payments });
-  } catch (error) {
-    console.error("Error fetching admin dashboard data:", error);
-    res.status(500).send("Internal Server Error");
-  }
-});
+  })
+);
 
 router.get("/logout", (req, res) => {
   // Destroy the session

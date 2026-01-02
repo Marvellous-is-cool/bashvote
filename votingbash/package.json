@@ -20,13 +20,17 @@
     "express-fileupload": "^1.4.3",
     "express-flash": "^0.0.2",
     "express-mysql-session": "^3.0.0",
+    "express-rate-limit": "^6.7.0",
     "express-session": "^1.17.3",
     "fs": "^0.0.1-security",
     "got": "^11.8.3",
+    "ioredis": "^5.8.2",
     "mysql2": "^2.0.0",
     "node-fetch": "^3.3.2",
     "paystack": "^2.0.1",
     "paystack-api": "^2.0.6",
+    "rate-limit-redis": "^4.3.1",
+    "redis": "^5.10.0",
     "uuid": "^9.0.1",
     "validator": "^13.11.0"
   }

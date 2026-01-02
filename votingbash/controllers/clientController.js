@@ -1,6 +1,11 @@
 const connection = require("../models/connection");
 const awardContestantController = require("./awardContestantController");
 
+// Convert undefined bind params to null (mysql2 throws on undefined)
+function sanitizeParams(params = []) {
+  return params.map((p) => (p === undefined ? null : p));
+}
+
 async function getAwards() {
   const sql = "SELECT * FROM awards ORDER BY title ASC";
   try {
@@ -14,8 +19,14 @@ async function getAwards() {
 
 async function getSelectedAward(awardId) {
   const sql = "SELECT * FROM awards WHERE id = ?";
+  if (awardId === undefined || awardId === null) {
+    throw new Error("getSelectedAward requires a valid awardId");
+  }
   try {
-    const [selectedAward] = await connection.execute(sql, [awardId]);
+    const [selectedAward] = await connection.execute(
+      sql,
+      sanitizeParams([awardId])
+    );
 
     return selectedAward[0];
   } catch (error) {
@@ -40,7 +51,16 @@ async function getContestantsForAward(awardId) {
 async function incrementVotesForContestant(contestantId, numberOfVotes) {
   const sql = "UPDATE contestants SET votes = votes + ? WHERE id = ?";
   try {
-    await connection.execute(sql, [numberOfVotes, contestantId]);
+    if (contestantId === undefined || contestantId === null) {
+      throw new Error("incrementVotesForContestant requires contestantId");
+    }
+    if (numberOfVotes === undefined || numberOfVotes === null) {
+      throw new Error("incrementVotesForContestant requires numberOfVotes");
+    }
+    await connection.execute(
+      sql,
+      sanitizeParams([numberOfVotes, contestantId])
+    );
   } catch (error) {
     console.error("Error incrementing votes for contestant:", error);
     throw error;
@@ -57,8 +77,14 @@ async function getContestantById(contestantId) {
   GROUP BY c.id;
 `;
 
+  if (contestantId === undefined || contestantId === null) {
+    throw new Error("getContestantById requires contestantId");
+  }
   try {
-    const [contestant] = await connection.execute(sql, [contestantId]);
+    const [contestant] = await connection.execute(
+      sql,
+      sanitizeParams([contestantId])
+    );
 
     if (contestant.length > 0) {
       // Convert the comma-separated string of award titles to an array
@@ -103,10 +129,17 @@ async function handlePaymentQueries(amount, status, selectedContestant) {
       );
     }
 
+    if (!selectedContestant || !selectedContestant.id) {
+      throw new Error(
+        "handlePaymentQueries requires selectedContestant with an id"
+      );
+    }
+
     // Get the award_id from the award_contestants table
-    const [awardRows] = await connection.execute(getAwardIdQuery, [
-      selectedContestant.id,
-    ]);
+    const [awardRows] = await connection.execute(
+      getAwardIdQuery,
+      sanitizeParams([selectedContestant.id])
+    );
     const awardId = awardRows.length > 0 ? awardRows[0].award_id : null;
 
     if (!awardId) {
@@ -128,19 +161,22 @@ async function handlePaymentQueries(amount, status, selectedContestant) {
     });
 
     // Update payment status in the database
-    await connection.execute(updatePaymentQuery, [
-      status,
-      selectedContestant.id,
-    ]);
+    await connection.execute(
+      updatePaymentQuery,
+      sanitizeParams([status, selectedContestant.id])
+    );
 
     // Insert payment details into the new payments table
-    await connection.execute(insertPaymentQuery, [
-      selectedContestant.id,
-      awardId,
-      amountDividedBy10,
-      new Date(),
-      status,
-    ]);
+    await connection.execute(
+      insertPaymentQuery,
+      sanitizeParams([
+        selectedContestant.id,
+        awardId,
+        amountDividedBy10,
+        new Date(),
+        status,
+      ])
+    );
   } catch (error) {
     console.error("Error executing payment queries:", error);
     throw error;

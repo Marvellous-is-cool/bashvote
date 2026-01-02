@@ -6,17 +6,17 @@ const voteNowRouter = require("./voteNow.js");
 const authMiddleware = require("../../middlewares/authMiddleware");
 const adminContestantRouter = require("../adminRoutes/adminContestantRoute"); // Import the adminContestantRoute
 const configModel = require("../../models/config");
+const asyncHandler = require("../../middlewares/asyncHandler");
+const { voteLimiter } = require("../../middlewares/rateLimiter");
 
 // // // Index route
-router.get("/", async (req, res) => {
-  try {
+router.get(
+  "/",
+  asyncHandler(async (req, res) => {
     const awards = await clientController.getAwards();
     res.render("index", { awards });
-  } catch (error) {
-    console.error("Error rendering index:", error);
-    res.status(500).send("Internal Server Error");
-  }
-});
+  })
+);
 
 // router.get("/", async (req, res) => {
 //   try {
@@ -28,8 +28,10 @@ router.get("/", async (req, res) => {
 //   }
 // });
 
-router.post("/vote", async (req, res) => {
-  try {
+router.post(
+  "/vote",
+  voteLimiter,
+  asyncHandler(async (req, res) => {
     const { award } = req.body;
 
     // Fetch selected award details
@@ -38,20 +40,16 @@ router.post("/vote", async (req, res) => {
     // Fetch contestants for the selected award
     const contestants = await clientController.getContestantsForAward(award);
 
-    // Add this line to log the fetched contestants
-
     res.render("contestants", {
       selectedAward,
       contestants,
     });
-  } catch (error) {
-    console.error("Error processing vote:", error);
-    res.status(500).send("Internal Server Error");
-  }
-});
+  })
+);
 
-router.get("/contestant/:id/votenow/payment", async (req, res) => {
-  try {
+router.get(
+  "/contestant/:id/votenow/payment",
+  asyncHandler(async (req, res) => {
     const contestantId = req.params.id;
 
     // Fetch contestant details by ID with associated award title
@@ -64,17 +62,15 @@ router.get("/contestant/:id/votenow/payment", async (req, res) => {
       selectedContestant,
       awardTitle: selectedContestant.award_titles[0], // Assuming there's only one award title
     });
-  } catch (error) {
-    console.error("Error fetching contestant details:", error);
-    res.status(500).send("Internal Server Error");
-  }
-});
+  })
+);
 
 router.use("/", voteNowRouter);
 
 // // Define the route for /voteNowSucess
-router.get("/voteNowSucess", async (req, res) => {
-  try {
+router.get(
+  "/voteNowSucess",
+  asyncHandler(async (req, res) => {
     const { status, email, contestantId } = req.query;
 
     // Fetch contestant details by ID using the correct function
@@ -88,11 +84,8 @@ router.get("/voteNowSucess", async (req, res) => {
       contestantId,
       selectedContestant,
     });
-  } catch (error) {
-    console.error("Error fetching contestant details:", error);
-    res.status(500).send("Internal Server Error");
-  }
-});
+  })
+);
 
 // // Apply authMiddleware only to the routes under /admin
 router.use("/admin", authMiddleware, adminContestantRouter);
@@ -104,47 +97,52 @@ router.get("/login", (req, res) => {
 });
 
 // // Admin authentication route
-router.post("/authenticate", async (req, res) => {
-  const { username, password } = req.body;
+router.post(
+  "/authenticate",
+  asyncHandler(async (req, res) => {
+    const { username, password } = req.body;
 
-  try {
-    const { success, error, admin } = await adminController.authenticateAdmin(
-      username,
-      password
-    );
-
-    if (success) {
-      // Authentication successful
-      req.session.regenerate((err) => {
-        if (err) {
-          console.error("Error regenerating session:", err);
-          res.status(500).send("Internal Server Error");
-        } else {
-          req.session.admin = true;
-          req.session.adminUsername = admin.username; // Include admin's username
-
-          // Set session expiration to 20 hours from now
-          const sessionExpiration = 20 * 60 * 60 * 1000; // 20 hours in milliseconds
-          req.session.cookie.expires = new Date(Date.now() + sessionExpiration);
-          req.session.cookie.maxAge = sessionExpiration;
-
-          res.redirect("/admin/dashboard");
-        }
-      });
-    } else {
-      // Authentication failed
-      req.flash(
-        "error",
-        error || "Incorrect username or password. Please try again."
+    try {
+      const { success, error, admin } = await adminController.authenticateAdmin(
+        username,
+        password
       );
 
-      res.redirect("/login");
+      if (success) {
+        // Authentication successful
+        req.session.regenerate((err) => {
+          if (err) {
+            console.error("Error regenerating session:", err);
+            res.status(500).send("Internal Server Error");
+          } else {
+            req.session.admin = true;
+            req.session.adminUsername = admin.username; // Include admin's username
+
+            // Set session expiration to 20 hours from now
+            const sessionExpiration = 20 * 60 * 60 * 1000; // 20 hours in milliseconds
+            req.session.cookie.expires = new Date(
+              Date.now() + sessionExpiration
+            );
+            req.session.cookie.maxAge = sessionExpiration;
+
+            res.redirect("/admin/dashboard");
+          }
+        });
+      } else {
+        // Authentication failed
+        req.flash(
+          "error",
+          error || "Incorrect username or password. Please try again."
+        );
+
+        res.redirect("/login");
+      }
+    } catch (error) {
+      console.error("Error during admin authentication:", error);
+      res.status(500).send("Internal Server Error");
     }
-  } catch (error) {
-    console.error("Error during admin authentication:", error);
-    res.status(500).send("Internal Server Error");
-  }
-});
+  })
+);
 
 // Logout route
 router.get("/logout", (req, res) => {
@@ -173,8 +171,9 @@ router.post("/destroy-session", (req, res) => {
 });
 
 // Live votes page
-router.get("/live", async (req, res) => {
-  try {
+router.get(
+  "/live",
+  asyncHandler(async (req, res) => {
     const liveEnabled =
       (await configModel.getConfig("live_enabled")) === "true";
     if (!liveEnabled) {
@@ -186,11 +185,8 @@ router.get("/live", async (req, res) => {
     const awardsWithContestants =
       await clientController.getAwardsWithContestants();
     res.render("live", { awardsWithContestants });
-  } catch (err) {
-    console.error("Error rendering live votes:", err);
-    res.status(500).send("Internal Server Error");
-  }
-});
+  })
+);
 
 // router.get("/live/votes", async (req, res) => {
 //   try {

@@ -4,10 +4,14 @@ const clientController = require("../../controllers/clientController");
 const paystack = require("paystack")(`${process.env.PAYSTACK_SECRET_KEY}`);
 const awardContestantController = require("../../controllers/awardContestantController");
 const handlePaymentQueries = clientController.handlePaymentQueries;
+const asyncHandler = require("../../middlewares/asyncHandler");
+const { voteLimiter } = require("../../middlewares/rateLimiter");
 
 // Endpoint to fetch Paystack authentication URL
-router.post("/:id/payment/get-url", async (req, res) => {
-  try {
+router.post(
+  "/:id/payment/get-url",
+  voteLimiter,
+  asyncHandler(async (req, res) => {
     const contestantId = req.params.id;
     const selectedContestant = await clientController.getContestantById(
       contestantId
@@ -23,17 +27,13 @@ router.post("/:id/payment/get-url", async (req, res) => {
       currency: "NGN",
       callback: `https://bashvoting.onrender.com/paid/callback`, // production URL
       // callback_url: `http://localhost:3000/paid/callback`, // local development URL
-    }; // Log Paystack transaction details
+    };
 
     const paystackResponse = await paystack.transaction.initialize(
       paystackTransaction
     );
 
-    // Log Paystack API response
-
     if (paystackResponse.status && paystackResponse.status === true) {
-      // Send Paystack authentication URL to the client side
-
       res.status(200).json({
         authorization_url: paystackResponse.data.authorization_url,
         email: email,
@@ -42,19 +42,15 @@ router.post("/:id/payment/get-url", async (req, res) => {
       console.error("Invalid Paystack response:", paystackResponse);
       res.status(500).json({ error: "Invalid Paystack Response" });
     }
-  } catch (error) {
-    console.error("Error processing payment:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
+  })
+);
 
 // Callback endpoint to handle Paystack callback
-router.get("/paid/callback", async (req, res) => {
-  // This route will be accessible at /paid/callback
-  try {
+router.get(
+  "/paid/callback",
+  asyncHandler(async (req, res) => {
+    // This route will be accessible at /paid/callback
     const transactionReference = req.query.reference;
-
-    // Log the transaction reference
 
     // Extracting contestant id from the transaction reference
     const contestantIdMatch = transactionReference.match(/vote__(\d+)__/);
@@ -62,21 +58,15 @@ router.get("/paid/callback", async (req, res) => {
       ? parseInt(contestantIdMatch[1])
       : null;
 
-    // Log the extracted contestant ID
-
     // Getting the contestant details by id
     const selectedContestant = await clientController.getContestantById(
       contestantId
     );
 
-    // Log selected contestant details
-
     // Verify the Paystack transaction
     const verifyResponse = await paystack.transaction.verify(
       transactionReference
     );
-
-    // Log Paystack verification response
 
     if (
       verifyResponse.status &&
@@ -87,13 +77,10 @@ router.get("/paid/callback", async (req, res) => {
       const paidAmount = verifyResponse.data.amount / 100; // Convert from kobo to Naira
       const numberOfVotes = Math.floor(paidAmount / 100); // Assuming N100 per vote
 
-      // Log the paid amount
-      // Log the number of votes calculated
-
       // Call the handlePaymentQueries function to handle database queries
       await clientController.handlePaymentQueries(
         verifyResponse.data.amount,
-        "paid", // Changed from "success" to "paid" to match the check constraint
+        "paid",
         selectedContestant
       );
 
@@ -118,10 +105,7 @@ router.get("/paid/callback", async (req, res) => {
         `/voteNowSucess?status=failed&email=${req.query.email}&contestantId=${contestantId}`
       );
     }
-  } catch (error) {
-    console.error("Error processing Paystack callback:", error);
-    res.status(500).send("Internal Server Error");
-  }
-});
+  })
+);
 
 module.exports = router;
