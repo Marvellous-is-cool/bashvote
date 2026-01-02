@@ -152,13 +152,13 @@ async function handlePaymentQueries(amount, status, selectedContestant) {
     const amountDividedBy10 = amount / 10;
 
     // Log payment details for debugging
-    console.log("Payment Details:", {
-      contestant_id: selectedContestant.id,
-      award_id: awardId,
-      amount: amount,
-      amount_divided_by_10: amountDividedBy10,
-      status: status,
-    });
+    // console.log("Payment Details:", {
+    //   contestant_id: selectedContestant.id,
+    //   award_id: awardId,
+    //   amount: amount,
+    //   amount_divided_by_10: amountDividedBy10,
+    //   status: status,
+    // });
 
     // Update payment status in the database
     await connection.execute(
