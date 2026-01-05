@@ -205,8 +205,10 @@
           <div class="row mt-3">
             <h2 class="col">Transaction Details</h2>
             <b id="totalAmount" class="col h-5 text-danger">
-              Total Amount: N<%= payments.reduce((total, payment) => total +
-              parseFloat(payment.amount_divided_by_10 || 0), 0).toFixed(2) %>
+              Total Amount: N<%= Number( payments.reduce((total, payment) => {
+              const val = Number(payment.amount_divided_by_10) || 0; return
+              total + val; }, 0) ).toLocaleString('en-NG', {
+              minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
             </b>
           </div>
 
@@ -227,10 +229,9 @@
                 <td><%= payment.contestant_nickname %></td>
                 <td><%= payment.award_title %></td>
                 <td>
-                  N<%= typeof payment.amount_divided_by_10 === 'number' ?
-                  (payment.amount_divided_by_10 / 10).toFixed(2) :
-                  parseFloat(payment.amount_divided_by_10 /
-                  10).toFixed(2).replace(/\.?0+$/, '') %>
+                  N<%= Number(payment.amount_divided_by_10)
+                  .toLocaleString('en-NG', { minimumFractionDigits: 2,
+                  maximumFractionDigits: 2 }) %>
                 </td>
                 <td><%= new Date(payment.payment_date).toLocaleString() %></td>
               </tr>
@@ -263,19 +264,6 @@
             .replace("Header", "ExpandIcon");
           $("#" + iconId).hide();
           $("#" + iconId.replace("ExpandIcon", "CollapseIcon")).show();
-        });
-
-        // Calculate total amount
-        let totalAmount = 0;
-        <% payments.forEach((payment) => { %>
-          totalAmount += typeof <%= payment.amount_divided_by_10 %> === 'number'
-            ? <%= payment.amount_divided_by_10 %> / 10
-            : parseFloat(<%= payment.amount_divided_by_10 %> / 10);
-        <% }) %>
-
-        // Display total amount
-        $(".nav-tabs").on("click", "#section2-tab", function () {
-          $("#totalAmount").text(`Total Amount: N${totalAmount.toFixed(2).replace(/\.?0+$/, '')}`);
         });
       });
     </script>
