@@ -205,10 +205,13 @@
           <div class="row mt-3">
             <h2 class="col">Transaction Details</h2>
             <b id="totalAmount" class="col h-5 text-danger">
-              Total Amount: N<%= Number( payments.reduce((total, payment) => {
-              const val = Number(payment.amount_divided_by_10) || 0; return
-              total + val; }, 0) ).toLocaleString('en-NG', {
-              minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+              Total Amount: N<%= (function() { const list =
+              Array.isArray(payments) ? payments : []; const sum =
+              list.reduce((total, payment) => { const val = parseFloat(payment
+              && payment.amount_divided_by_10); return total +
+              (Number.isFinite(val) ? val : 0); }, 0); return
+              sum.toLocaleString('en-NG', { minimumFractionDigits: 2,
+              maximumFractionDigits: 2 }); })() %>
             </b>
           </div>
 
@@ -226,7 +229,7 @@
               <% payments.forEach((payment, index) => { %>
               <tr>
                 <th scope="row"><%= index + 1 %></th>
-                <td><%= payment.contestant_nickname %></td>
+                <td><%= payment.contestant_name %></td>
                 <td><%= payment.award_title %></td>
                 <td>
                   N<%= Number(payment.amount_divided_by_10)
