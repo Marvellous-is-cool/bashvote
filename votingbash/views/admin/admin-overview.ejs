@@ -77,19 +77,21 @@
     <div class="container">
       <div class="row p-3">
         <button class="btn btn-dark">
+          <% var paidPayments = Array.isArray(payments)
+              ? payments.filter(function(p){ return p && p.status === 'paid'; })
+              : []; %>
           <a href="/admin/dashboard" class="text-white">Back</a>
         </button>
         <h1 class="h1 text-dark col-10">Overview</h1>
-      </div>
-      <!-- Nav tabs -->
-      <ul class="nav nav-tabs" id="adminTabs" role="tablist">
-        <li class="nav-item">
-          <a
-            class="nav-link active"
-            id="section1-tab"
-            data-toggle="tab"
-            href="#section1"
-            role="tab"
+              Total Amount: N<%=
+                (function() {
+                  var sum = paidPayments.reduce(function(total, payment){
+                    var val = parseFloat(payment && payment.amount_divided_by_10);
+                    return total + (Number.isFinite(val) ? (val / 10) : 0);
+                  }, 0);
+                  return sum.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                })()
+              %>
             aria-controls="section1"
             aria-selected="true"
             >Award Titles and Contestant Votes</a
@@ -209,7 +211,7 @@
               Array.isArray(payments) ? payments : []; const sum =
               list.reduce((total, payment) => { const val = parseFloat(payment
               && payment.amount_divided_by_10); return total +
-              (Number.isFinite(val) ? val : 0); }, 0); return
+              (Number.isFinite(val) ? (val / 10) : 0); }, 0); return
               sum.toLocaleString('en-NG', { minimumFractionDigits: 2,
               maximumFractionDigits: 2 }); })() %>
             </b>
@@ -226,14 +228,16 @@
               </tr>
             </thead>
             <tbody>
-              <% payments.forEach((payment, index) => { %>
+              <% paidPayments.forEach((payment, index) => { %>
               <tr>
                 <th scope="row"><%= index + 1 %></th>
                 <td><%= payment.contestant_name %></td>
                 <td><%= payment.award_title %></td>
                 <td>
-                  N<%= Number(payment.amount_divided_by_10)
-                  .toLocaleString('en-NG', { minimumFractionDigits: 2,
+                  <% var __amtRaw = payment && payment.amount_divided_by_10; var
+                  __amtNum = parseFloat(__amtRaw); var __amt =
+                  Number.isFinite(__amtNum) ? (__amtNum / 10) : 0; %> N<%=
+                  __amt.toLocaleString('en-NG', { minimumFractionDigits: 2,
                   maximumFractionDigits: 2 }) %>
                 </td>
                 <td><%= new Date(payment.payment_date).toLocaleString() %></td>
