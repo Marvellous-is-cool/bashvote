@@ -180,15 +180,16 @@ const adminController = {
         SELECT 
           p.id, 
           p.status, 
-          c.nickname as contestant_name,
-          a.title as award_title,
-          p.amount_divided_by_10, 
+          c.nickname AS contestant_name,
+          a.title AS award_title,
+          (p.amount_divided_by_10 / 10) AS amount,
           p.payment_date,
           c.department,
           c.votes
         FROM payments p
         JOIN contestants c ON p.contestant_id = c.id
         JOIN awards a ON p.award_id = a.id
+        WHERE p.status = 'paid'
       `);
 
       return payments;

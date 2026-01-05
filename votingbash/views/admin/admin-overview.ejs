@@ -22,6 +22,64 @@
       .container {
         margin-top: 40px;
       }
+      .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .stat-card {
+        background: linear-gradient(135deg, #fff, #f9fafb);
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.06);
+        padding: 16px 18px;
+        margin-bottom: 16px;
+      }
+      .stat-card .label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        letter-spacing: .02em;
+      }
+      .stat-card .value {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #111827;
+      }
+      /* Awards + Contestants */
+      .award-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: linear-gradient(90deg, #ecca4d, #f8d64a);
+        color: #1f2937;
+      }
+      .award-meta {
+        font-size: .9rem;
+        color: #374151;
+        background: rgba(255,255,255,.7);
+        border-radius: 8px;
+        padding: 4px 10px;
+      }
+      /* Glass + Tiles */
+      .contestant-tile {
+        position: relative;
+        padding: 14px;
+        border-radius: 14px;
+        background: rgba(255,255,255,0.7);
+        border: 1px solid rgba(229,231,235,.7);
+        box-shadow: 0 10px 20px rgba(0,0,0,.06);
+        backdrop-filter: blur(8px);
+        transition: transform .18s ease, box-shadow .18s ease;
+      }
+      .contestant-tile:hover { transform: translateY(-4px); box-shadow: 0 14px 26px rgba(0,0,0,.08); }
+      .tile-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+      .avatar { width:42px; height:42px; border-radius:50%; object-fit:cover; background:#f1f5f9; }
+      .avatar-fallback { width:42px; height:42px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:#eef2ff; color:#4f46e5; font-weight:700; }
+      .medal { font-size:1.1rem; }
+      .radial { width:68px; height:68px; border-radius: 50%; background: conic-gradient(var(--accent, #6366f1) calc(var(--p,0) * 1%), #e5e7eb 0); display:grid; place-items:center; }
+      .radial-inner { width:54px; height:54px; border-radius:50%; background:#fff; display:grid; place-items:center; font-size:.8rem; font-weight:700; color:#111827; }
+      .tile-meta { font-size:.82rem; color:#6b7280; }
+      .chip { display:inline-block; padding:2px 8px; border-radius:9999px; background:#f3f4f6; color:#374151; font-size:.75rem; }
       .nav-tabs .nav-link.active {
         background-color: #f8c200;
         color: white;
@@ -49,7 +107,7 @@
         border: none;
       }
       .progress-bar-fill {
-        background-color: #28a745;
+        background: linear-gradient(90deg, #1dd1a1, #10ac84);
         border-radius: 10px;
         transition: width 1s ease-in-out;
       }
@@ -75,23 +133,21 @@
   </head>
   <body>
     <div class="container">
-      <div class="row p-3">
+      <div class="row p-3 page-header">
         <button class="btn btn-dark">
-          <% var paidPayments = Array.isArray(payments)
-              ? payments.filter(function(p){ return p && p.status === 'paid'; })
-              : []; %>
           <a href="/admin/dashboard" class="text-white">Back</a>
         </button>
-        <h1 class="h1 text-dark col-10">Overview</h1>
-              Total Amount: N<%=
-                (function() {
-                  var sum = paidPayments.reduce(function(total, payment){
-                    var val = parseFloat(payment && payment.amount_divided_by_10);
-                    return total + (Number.isFinite(val) ? (val / 10) : 0);
-                  }, 0);
-                  return sum.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                })()
-              %>
+        <h1 class="h1 text-dark m-0">Overview</h1>
+      </div>
+      <!-- Nav tabs -->
+      <ul class="nav nav-tabs" id="adminTabs" role="tablist">
+        <li class="nav-item">
+          <a
+            class="nav-link active"
+            id="section1-tab"
+            data-toggle="tab"
+            href="#section1"
+            role="tab"
             aria-controls="section1"
             aria-selected="true"
             >Award Titles and Contestant Votes</a
@@ -122,16 +178,18 @@
         >
           <h2>Award Titles and Contestant Votes</h2>
           <% awards.forEach((award, index) => { %>
+          <% const _totalVotes = (award.contestants || []).reduce((t,c)=> t + (Number(c.votes)||0), 0); %>
           <div class="card mb-4">
             <div
-              class="card-header"
+              class="card-header award-card-header"
               id="award<%= index %>Header"
               data-toggle="collapse"
               data-target="#award<%= index %>Collapse"
               aria-expanded="true"
               aria-controls="award<%= index %>Collapse"
             >
-              <%= award.title %>
+              <span><i class="fas fa-trophy mr-2"></i><%= award.title %></span>
+              <span class="award-meta">Total votes: <%= _totalVotes.toLocaleString() %></span>
               <!-- Add up and down icons -->
               <span class="float-right">
                 <i
@@ -150,49 +208,43 @@
               class="collapse"
               aria-labelledby="award<%= index %>Header"
             >
-              <ul class="list-group list-group-flush">
-                <% award.contestants.sort((a, b) => b.votes -
-                a.votes).forEach((contestant) => { %>
-                <li
-                  class="list-group-item d-flex justify-content-between align-items-center"
-                >
-                  <%= contestant.nickname %>
-                  <div class="custom-progress">
-                    <div
-                      class="progress-bar"
-                      style="
-                        height: 20px;
-                        background-color: #ccc;
-                        border-radius: 10px;
-                        position: relative;
-                        overflow: hidden;
-                      "
-                    >
-                      <div
-                        class="progress-bar-fill"
-                        style="
-                          position: absolute;
-                          left: 0;
-                          top: 0;
-                          height: 100%;
-                          width: <%=
-                            Math.max(1, Math.min(contestant.votes, 250)) %>%;
-                          border-radius: 10px;
-                          background-color: #28a745;
-                          transition: width 1s ease-in-out;
-                        "
-                      ></div>
-                    </div>
-                    <div class="progress-text">
-                      <%= contestant.votes %> Votes
+              <div class="card-body">
+                <% const _maxVotes = Math.max.apply(null, (award.contestants || []).map(c => c.votes || 0).concat([1])); %>
+                <div class="row">
+                <% award.contestants.sort((a, b) => (b.votes||0) - (a.votes||0)).forEach((contestant, i) => { %>
+                  <% var __votes = Number(contestant.votes)||0; %>
+                  <% var __pAward = Math.round((__votes/(_totalVotes||1))*100); %>
+                  <% var __accent = i===0 ? '#f59e0b' : (i===1 ? '#9ca3af' : (i===2 ? '#d97706' : '#6366f1')); %>
+                  <div class="col-12 col-md-6 col-lg-4 mb-3">
+                    <div class="contestant-tile">
+                      <div class="tile-head">
+                        <div class="d-flex align-items-center" style="gap:10px">
+                          <% if (contestant.photo_url) { %>
+                            <img class="avatar" src="/uploads/<%= contestant.photo_url %>" alt="<%= contestant.nickname %>" />
+                          <% } else { %>
+                            <div class="avatar-fallback"><%= (contestant.nickname || '?').slice(0,2).toUpperCase() %></div>
+                          <% } %>
+                          <div>
+                            <div style="font-weight:700"><%= contestant.nickname %></div>
+                            <div class="tile-meta"><%= contestant.department || contestant.level || '' %></div>
+                          </div>
+                        </div>
+                        <div class="medal"><%= i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : '')) %></div>
+                      </div>
+                      <div class="d-flex align-items-center justify-content-between mt-3">
+                        <div class="radial" style="--p:<%= __pAward %>; --accent:<%= __accent %>">
+                          <div class="radial-inner"><%= __pAward %>%</div>
+                        </div>
+                        <div class="text-right">
+                          <div class="chip">Votes: <strong><%= __votes.toLocaleString() %></strong></div>
+                          <div class="chip mt-1">Share of award</div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <span class="badge badge-primary badge-pill"
-                    ><%= contestant.votes %></span
-                  >
-                </li>
                 <% }) %>
-              </ul>
+                </div>
+              </div>
             </div>
           </div>
           <% }) %>
@@ -204,17 +256,28 @@
           role="tabpanel"
           aria-labelledby="section2-tab"
         >
+          <% var paidPayments = Array.isArray(payments) ? payments : []; %>
+          <% var __sum = paidPayments.reduce(function(total, p){ var n = Number(p && p.amount); return total + (isFinite(n) ? n : 0); }, 0); %>
+          <% var __avg = paidPayments.length ? (__sum / paidPayments.length) : 0; %>
           <div class="row mt-3">
-            <h2 class="col">Transaction Details</h2>
-            <b id="totalAmount" class="col h-5 text-danger">
-              Total Amount: N<%= (function() { const list =
-              Array.isArray(payments) ? payments : []; const sum =
-              list.reduce((total, payment) => { const val = parseFloat(payment
-              && payment.amount_divided_by_10); return total +
-              (Number.isFinite(val) ? (val / 10) : 0); }, 0); return
-              sum.toLocaleString('en-NG', { minimumFractionDigits: 2,
-              maximumFractionDigits: 2 }); })() %>
-            </b>
+            <div class="col-12 col-lg-4">
+              <div class="stat-card">
+                <div class="label">Total Amount</div>
+                <div class="value">₦<%= __sum.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></div>
+              </div>
+            </div>
+            <div class="col-6 col-lg-4">
+              <div class="stat-card">
+                <div class="label">Transactions</div>
+                <div class="value"><%= paidPayments.length %></div>
+              </div>
+            </div>
+            <div class="col-6 col-lg-4">
+              <div class="stat-card">
+                <div class="label">Average per Transaction</div>
+                <div class="value">₦<%= __avg.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></div>
+              </div>
+            </div>
           </div>
 
           <table class="table table-hover table-striped mt-3">
@@ -234,11 +297,8 @@
                 <td><%= payment.contestant_name %></td>
                 <td><%= payment.award_title %></td>
                 <td>
-                  <% var __amtRaw = payment && payment.amount_divided_by_10; var
-                  __amtNum = parseFloat(__amtRaw); var __amt =
-                  Number.isFinite(__amtNum) ? (__amtNum / 10) : 0; %> N<%=
-                  __amt.toLocaleString('en-NG', { minimumFractionDigits: 2,
-                  maximumFractionDigits: 2 }) %>
+                  <% var __amtRaw = payment && payment.amount; var __amtNum = parseFloat(__amtRaw); var __amt = Number.isFinite(__amtNum) ? __amtNum : 0; %>
+                  ₦<%= __amt.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
                 </td>
                 <td><%= new Date(payment.payment_date).toLocaleString() %></td>
               </tr>
