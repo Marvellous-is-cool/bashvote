@@ -15,77 +15,77 @@ router.get(
   asyncHandler(async (req, res) => {
     const awards = await clientController.getAwards();
     res.render("index", { awards });
-  })
+  }),
 );
 
-// router.get("/", async (req, res) => {
-//   try {
-//     res.render("bye");
-//   } catch (error) {
-//     console.error("Error rendering index:", error);
-//     res.status(500).send("Internal Server Error");
-//     res.render("bye");
-//   }
-// });
+router.get("/", async (req, res) => {
+  try {
+    res.render("bye");
+  } catch (error) {
+    console.error("Error rendering index:", error);
+    res.status(500).send("Internal Server Error");
+    res.render("bye");
+  }
+});
 
-router.post(
-  "/vote",
-  voteLimiter,
-  asyncHandler(async (req, res) => {
-    const { award } = req.body;
+// router.post(
+//   "/vote",
+//   voteLimiter,
+//   asyncHandler(async (req, res) => {
+//     const { award } = req.body;
 
-    // Fetch selected award details
-    const selectedAward = await clientController.getSelectedAward(award);
+//     // Fetch selected award details
+//     const selectedAward = await clientController.getSelectedAward(award);
 
-    // Fetch contestants for the selected award
-    const contestants = await clientController.getContestantsForAward(award);
+//     // Fetch contestants for the selected award
+//     const contestants = await clientController.getContestantsForAward(award);
 
-    res.render("contestants", {
-      selectedAward,
-      contestants,
-    });
-  })
-);
+//     res.render("contestants", {
+//       selectedAward,
+//       contestants,
+//     });
+//   })
+// );
 
-router.get(
-  "/contestant/:id/votenow/payment",
-  asyncHandler(async (req, res) => {
-    const contestantId = req.params.id;
+// router.get(
+//   "/contestant/:id/votenow/payment",
+//   asyncHandler(async (req, res) => {
+//     const contestantId = req.params.id;
 
-    // Fetch contestant details by ID with associated award title
-    const selectedContestant = await clientController.getContestantById(
-      contestantId
-    );
+//     // Fetch contestant details by ID with associated award title
+//     const selectedContestant = await clientController.getContestantById(
+//       contestantId
+//     );
 
-    // Pass both selectedContestant and awardTitle to the template
-    res.render("voteNow", {
-      selectedContestant,
-      awardTitle: selectedContestant.award_titles[0], // Assuming there's only one award title
-    });
-  })
-);
+//     // Pass both selectedContestant and awardTitle to the template
+//     res.render("voteNow", {
+//       selectedContestant,
+//       awardTitle: selectedContestant.award_titles[0], // Assuming there's only one award title
+//     });
+//   })
+// );
 
-router.use("/", voteNowRouter);
+// router.use("/", voteNowRouter);
 
-// // Define the route for /voteNowSucess
-router.get(
-  "/voteNowSucess",
-  asyncHandler(async (req, res) => {
-    const { status, email, contestantId } = req.query;
+// // // Define the route for /voteNowSucess
+// router.get(
+//   "/voteNowSucess",
+//   asyncHandler(async (req, res) => {
+//     const { status, email, contestantId } = req.query;
 
-    // Fetch contestant details by ID using the correct function
-    const selectedContestant = await clientController.getContestantById(
-      parseInt(contestantId)
-    );
+//     // Fetch contestant details by ID using the correct function
+//     const selectedContestant = await clientController.getContestantById(
+//       parseInt(contestantId)
+//     );
 
-    res.render("voteNowSucess", {
-      status,
-      email,
-      contestantId,
-      selectedContestant,
-    });
-  })
-);
+//     res.render("voteNowSucess", {
+//       status,
+//       email,
+//       contestantId,
+//       selectedContestant,
+//     });
+//   })
+// );
 
 // // Apply authMiddleware only to the routes under /admin
 router.use("/admin", authMiddleware, adminContestantRouter);
@@ -105,7 +105,7 @@ router.post(
     try {
       const { success, error, admin } = await adminController.authenticateAdmin(
         username,
-        password
+        password,
       );
 
       if (success) {
@@ -121,7 +121,7 @@ router.post(
             // Set session expiration to 20 hours from now
             const sessionExpiration = 20 * 60 * 60 * 1000; // 20 hours in milliseconds
             req.session.cookie.expires = new Date(
-              Date.now() + sessionExpiration
+              Date.now() + sessionExpiration,
             );
             req.session.cookie.maxAge = sessionExpiration;
 
@@ -132,7 +132,7 @@ router.post(
         // Authentication failed
         req.flash(
           "error",
-          error || "Incorrect username or password. Please try again."
+          error || "Incorrect username or password. Please try again.",
         );
 
         res.redirect("/login");
@@ -141,7 +141,7 @@ router.post(
       console.error("Error during admin authentication:", error);
       res.status(500).send("Internal Server Error");
     }
-  })
+  }),
 );
 
 // Logout route
@@ -185,7 +185,7 @@ router.get(
     const awardsWithContestants =
       await clientController.getAwardsWithContestants();
     res.render("live", { awardsWithContestants });
-  })
+  }),
 );
 
 // router.get("/live/votes", async (req, res) => {
