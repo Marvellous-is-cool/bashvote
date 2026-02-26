@@ -1,225 +1,25 @@
-const connection = require("../models/connection");
-const awardContestantController = require("./awardContestantController");
+// controllers/clientController.js
+// Thin controller layer - delegates all database operations to
+// contestantService and paymentService.
+// Route handlers should prefer importing the services directly.
 
-// Convert undefined bind params to null (mysql2 throws on undefined)
-function sanitizeParams(params = []) {
-  return params.map((p) => (p === undefined ? null : p));
-}
+"use strict";
 
-async function getAwards() {
-  const sql = "SELECT * FROM awards ORDER BY title ASC";
-  try {
-    const [awards] = await connection.execute(sql);
-    return awards;
-  } catch (error) {
-    console.error("Error fetching awards:", error);
-    throw error;
-  }
-}
-
-async function getSelectedAward(awardId) {
-  const sql = "SELECT * FROM awards WHERE id = ?";
-  if (awardId === undefined || awardId === null) {
-    throw new Error("getSelectedAward requires a valid awardId");
-  }
-  try {
-    const [selectedAward] = await connection.execute(
-      sql,
-      sanitizeParams([awardId])
-    );
-
-    return selectedAward[0];
-  } catch (error) {
-    console.error("Error fetching selected award:", error);
-    throw error;
-  }
-}
-
-async function getContestantsForAward(awardId) {
-  try {
-    const contestants = await awardContestantController.getContestantsForAward(
-      awardId
-    );
-
-    return contestants;
-  } catch (error) {
-    console.error("Error fetching contestants:", error);
-    throw error;
-  }
-}
-
-async function incrementVotesForContestant(contestantId, numberOfVotes) {
-  const sql = "UPDATE contestants SET votes = votes + ? WHERE id = ?";
-  try {
-    if (contestantId === undefined || contestantId === null) {
-      throw new Error("incrementVotesForContestant requires contestantId");
-    }
-    if (numberOfVotes === undefined || numberOfVotes === null) {
-      throw new Error("incrementVotesForContestant requires numberOfVotes");
-    }
-    await connection.execute(
-      sql,
-      sanitizeParams([numberOfVotes, contestantId])
-    );
-  } catch (error) {
-    console.error("Error incrementing votes for contestant:", error);
-    throw error;
-  }
-}
-
-async function getContestantById(contestantId) {
-  const sql = `
-  SELECT c.*, GROUP_CONCAT(a.title) AS award_titles
-  FROM contestants c
-  LEFT JOIN award_contestants ac ON c.id = ac.contestant_id
-  LEFT JOIN awards a ON ac.award_id = a.id
-  WHERE c.id = ?
-  GROUP BY c.id;
-`;
-
-  if (contestantId === undefined || contestantId === null) {
-    throw new Error("getContestantById requires contestantId");
-  }
-  try {
-    const [contestant] = await connection.execute(
-      sql,
-      sanitizeParams([contestantId])
-    );
-
-    if (contestant.length > 0) {
-      // Convert the comma-separated string of award titles to an array
-      const awardTitles = contestant[0].award_titles
-        ? contestant[0].award_titles.split(",")
-        : [];
-
-      return {
-        ...contestant[0],
-        award_titles: awardTitles,
-      };
-    } else {
-      return null;
-    }
-  } catch (error) {
-    console.error("Error fetching contestant by ID:", error);
-    throw error;
-  }
-}
-
-// Function to handle database queries related to payments
-async function handlePaymentQueries(amount, status, selectedContestant) {
-  const updatePaymentQuery =
-    "UPDATE payments SET status = ? WHERE contestant_id = ?";
-  const getAwardIdQuery = `
-    SELECT ac.award_id 
-    FROM award_contestants ac 
-    WHERE ac.contestant_id = ? 
-    LIMIT 1
-  `;
-
-  const insertPaymentQuery = `
-    INSERT INTO payments (contestant_id, award_id, amount_divided_by_10, payment_date, status)
-    VALUES (?, ?, ?, ?, ?)
-  `;
-
-  try {
-    // Validate payment status
-    if (!["pending", "paid", "failed"].includes(status)) {
-      throw new Error(
-        `Invalid payment status: ${status}. Must be one of: pending, paid, failed`
-      );
-    }
-
-    if (!selectedContestant || !selectedContestant.id) {
-      throw new Error(
-        "handlePaymentQueries requires selectedContestant with an id"
-      );
-    }
-
-    // Get the award_id from the award_contestants table
-    const [awardRows] = await connection.execute(
-      getAwardIdQuery,
-      sanitizeParams([selectedContestant.id])
-    );
-    const awardId = awardRows.length > 0 ? awardRows[0].award_id : null;
-
-    if (!awardId) {
-      throw new Error(
-        `No award found for contestant: ${selectedContestant.id}`
-      );
-    }
-
-    // Calculate amountDividedBy10 here before using it in the next execute call
-    const amountDividedBy10 = amount / 10;
-
-    // Log payment details for debugging
-    // console.log("Payment Details:", {
-    //   contestant_id: selectedContestant.id,
-    //   award_id: awardId,
-    //   amount: amount,
-    //   amount_divided_by_10: amountDividedBy10,
-    //   status: status,
-    // });
-
-    // Update payment status in the database
-    await connection.execute(
-      updatePaymentQuery,
-      sanitizeParams([status, selectedContestant.id])
-    );
-
-    // Insert payment details into the new payments table
-    await connection.execute(
-      insertPaymentQuery,
-      sanitizeParams([
-        selectedContestant.id,
-        awardId,
-        amountDividedBy10,
-        new Date(),
-        status,
-      ])
-    );
-  } catch (error) {
-    console.error("Error executing payment queries:", error);
-    throw error;
-  }
-}
-
-async function getAllContestantsWithVotes() {
-  const sql = "SELECT * FROM contestants ORDER BY votes DESC";
-  try {
-    const [contestants] = await connection.execute(sql);
-    return contestants;
-  } catch (error) {
-    console.error("Error fetching all contestants:", error);
-    throw error;
-  }
-}
-
-async function getAwardsWithContestants() {
-  const sql = "SELECT * FROM awards ORDER BY title ASC";
-  try {
-    const [awards] = await connection.execute(sql);
-    // For each award, get its contestants
-    const awardsWithContestants = await Promise.all(
-      awards.map(async (award) => {
-        const contestants =
-          await awardContestantController.getContestantsForAward(award.id);
-        return { ...award, contestants };
-      })
-    );
-    return awardsWithContestants;
-  } catch (error) {
-    console.error("Error fetching awards with contestants:", error);
-    throw error;
-  }
-}
+const contestantService = require("../services/contestantService");
+const paymentService = require("../services/paymentService");
 
 module.exports = {
-  getAwards,
-  getSelectedAward,
-  getContestantsForAward,
-  incrementVotesForContestant,
-  getContestantById,
-  handlePaymentQueries,
-  getAllContestantsWithVotes,
-  getAwardsWithContestants,
+  getAwards: () => contestantService.getAwards(),
+  getSelectedAward: (awardId) => contestantService.getSelectedAward(awardId),
+  getContestantsForAward: (awardId) =>
+    contestantService.getContestantsForAward(awardId),
+  getContestantById: (contestantId) =>
+    contestantService.getContestantById(contestantId),
+  incrementVotesForContestant: (contestantId, numberOfVotes) =>
+    contestantService.incrementVotesForContestant(contestantId, numberOfVotes),
+  handlePaymentQueries: (amount, status, contestant) =>
+    paymentService.recordPayment(amount, status, contestant),
+  getAllContestantsWithVotes: () =>
+    contestantService.getAllContestantsWithVotes(),
+  getAwardsWithContestants: () => contestantService.getAwardsWithContestants(),
 };

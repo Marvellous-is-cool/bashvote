@@ -8,6 +8,9 @@ const adminContestantRouter = require("../adminRoutes/adminContestantRoute"); //
 const configModel = require("../../models/config");
 const asyncHandler = require("../../middlewares/asyncHandler");
 const { voteLimiter } = require("../../middlewares/rateLimiter");
+const validate = require("../../middlewares/validate");
+const adminService = require("../../services/adminService");
+const { adminLoginSchema } = require("../../validators/authValidator");
 
 // // // Index route
 router.get(
@@ -99,11 +102,12 @@ router.get("/login", (req, res) => {
 // // Admin authentication route
 router.post(
   "/authenticate",
+  validate(adminLoginSchema),
   asyncHandler(async (req, res) => {
     const { username, password } = req.body;
 
     try {
-      const { success, error, admin } = await adminController.authenticateAdmin(
+      const { success, error, admin } = await adminService.authenticateAdmin(
         username,
         password,
       );

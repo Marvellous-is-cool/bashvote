@@ -1,111 +1,78 @@
 const express = require("express");
 const router = express.Router();
-const clientController = require("../../controllers/clientController");
-const paystack = require("paystack")(`${process.env.PAYSTACK_SECRET_KEY}`);
-const awardContestantController = require("../../controllers/awardContestantController");
-const handlePaymentQueries = clientController.handlePaymentQueries;
+const contestantService = require("../../services/contestantService");
+const paymentService = require("../../services/paymentService");
 const asyncHandler = require("../../middlewares/asyncHandler");
+const validate = require("../../middlewares/validate");
 const { voteLimiter } = require("../../middlewares/rateLimiter");
+const { initiatePaymentSchema } = require("../../validators/paymentValidator");
 
-// Endpoint to fetch Paystack authentication URL
+// Endpoint to fetch Paystack authorization URL
+// Zod validates email format and coerces amount before the handler runs.
 router.post(
   "/:id/payment/get-url",
   voteLimiter,
+  validate(initiatePaymentSchema),
   asyncHandler(async (req, res) => {
-    const contestantId = req.params.id;
-    const selectedContestant = await clientController.getContestantById(
-      contestantId
-    );
+    const contestantId = parseInt(req.params.id, 10);
+    const { email, amount } = req.body; // email & amount already validated + coerced by Zod
 
-    // Extract email from the request body
-    const { email, amount } = req.body;
-
-    const paystackTransaction = {
-      email: email,
-      amount: amount ? amount * 100 : 10000,
-      reference: `vote__${selectedContestant.id}__${Date.now()}`,
-      currency: "NGN",
-      callback: `https://bashvoting.onrender.com/paid/callback`, // production URL
-      // callback_url: `http://localhost:3000/paid/callback`, // local development URL
-    };
-
-    const paystackResponse = await paystack.transaction.initialize(
-      paystackTransaction
-    );
-
-    if (paystackResponse.status && paystackResponse.status === true) {
-      res.status(200).json({
-        authorization_url: paystackResponse.data.authorization_url,
-        email: email,
-      });
-    } else {
-      console.error("Invalid Paystack response:", paystackResponse);
-      res.status(500).json({ error: "Invalid Paystack Response" });
+    const selectedContestant =
+      await contestantService.getContestantById(contestantId);
+    if (!selectedContestant) {
+      return res.status(404).json({ error: "Contestant not found" });
     }
-  })
+
+    const { authorization_url } = await paymentService.initializeTransaction(
+      email,
+      amount,
+      selectedContestant.id,
+    );
+
+    res.status(200).json({ authorization_url, email });
+  }),
 );
 
 // Callback endpoint to handle Paystack callback
 router.get(
   "/paid/callback",
   asyncHandler(async (req, res) => {
-    // This route will be accessible at /paid/callback
     const transactionReference = req.query.reference;
 
-    // Extracting contestant id from the transaction reference
-    const contestantIdMatch = transactionReference.match(/vote__(\d+)__/);
-    const contestantId = contestantIdMatch
-      ? parseInt(contestantIdMatch[1])
-      : null;
+    // Extract contestant id from the reference string  (vote__<id>__<timestamp>)
+    const match = transactionReference?.match(/vote__(\d+)__/);
+    const contestantId = match ? parseInt(match[1], 10) : null;
 
-    // Getting the contestant details by id
-    const selectedContestant = await clientController.getContestantById(
-      contestantId
-    );
+    const selectedContestant =
+      await contestantService.getContestantById(contestantId);
 
-    // Verify the Paystack transaction
-    const verifyResponse = await paystack.transaction.verify(
-      transactionReference
-    );
+    const txData = await paymentService.verifyTransaction(transactionReference);
 
-    if (
-      verifyResponse.status &&
-      verifyResponse.status === true &&
-      verifyResponse.data.currency === "NGN"
-    ) {
-      // Calculate the number of votes based on the paid amount
-      const paidAmount = verifyResponse.data.amount / 100; // Convert from kobo to Naira
-      const numberOfVotes = Math.floor(paidAmount / 100); // Assuming N100 per vote
+    if (txData.currency === "NGN") {
+      // N100 per vote
+      const paidAmountNGN = txData.amount / 100;
+      const numberOfVotes = Math.floor(paidAmountNGN / 100);
 
-      // Call the handlePaymentQueries function to handle database queries
-      await clientController.handlePaymentQueries(
-        verifyResponse.data.amount,
+      await paymentService.recordPayment(
+        txData.amount,
         "paid",
-        selectedContestant
+        selectedContestant,
       );
-
-      // Increment votes for the contestant using the new controller
-      await clientController.incrementVotesForContestant(
+      await contestantService.incrementVotesForContestant(
         contestantId,
-        numberOfVotes
+        numberOfVotes,
       );
 
-      res.redirect(
-        `/voteNowSucess?status=success&email=${req.query.email}&contestantId=${contestantId}`
-      );
-    } else {
-      // Call the handlePaymentQueries function with 'failed' status
-      await clientController.handlePaymentQueries(
-        0,
-        "failed",
-        selectedContestant
-      );
-
-      res.redirect(
-        `/voteNowSucess?status=failed&email=${req.query.email}&contestantId=${contestantId}`
+      return res.redirect(
+        `/voteNowSucess?status=success&email=${req.query.email}&contestantId=${contestantId}`,
       );
     }
-  })
+
+    await paymentService.recordPayment(0, "failed", selectedContestant);
+    res.redirect(
+      `/voteNowSucess?status=failed&email=${req.query.email}&contestantId=${contestantId}`,
+    );
+  }),
 );
 
 module.exports = router;
